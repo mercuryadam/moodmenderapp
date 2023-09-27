@@ -45,7 +45,7 @@ def submit_email():
 
 @app.route("/") 
 def index():
-    return render_template("templates/startbootstrap-coming-soon/index.html")
+    return render_template("/index.html")
 
 @app.route("/api/update_highest_emotion", methods=["POST"])  
 def update_highest_emotion():
