@@ -10,25 +10,16 @@ from uuid import uuid4
 from datetime import datetime
 from flask import Flask, render_template, jsonify, request
 
-app = Flask(__name__)
 
+app = Flask(__name__)
 load_dotenv()
+
 api_key = os.environ.get("api_key")
 mongo_link = os.environ.get("mongo_link")
 
-# Connect to Users database
-mongo_client_users = MongoClient(mongo_link)
-db_users = mongo_client_users['Users']
-collection_users = db_users['users']
-
-# Connect to emotionDB database
-mongo_client_emotion = MongoClient(mongo_link)
-db_emotion = mongo_client_emotion['emotionDB']
-collection_emotion = db_emotion['emotionData']
-
 @app.route('/submit_email', methods=['POST'])
 def submit_email():
-    data = request.json
+    data =  request.json
     email = data.get('email')
     
     if not email:
@@ -105,6 +96,14 @@ async def main_text():
     with open('masterlist.json', 'w', encoding='utf-8') as f:
         json.dump(masterlist, f, indent=4)
 if __name__ == "__main__":
-    masterlist = asyncio.run(main_text())
-    print("Before running app")
-    app.run(debug=True)
+    # Connect to Users database
+    mongo_client_users = MongoClient(mongo_link)
+    db_users = mongo_client_users['Users']
+    collection_users = db_users['users']
+
+    # Connect to emotionDB database
+    mongo_client_emotion = MongoClient(mongo_link)
+    db_emotion = mongo_client_emotion['emotionDB']
+    collection_emotion = db_emotion['emotionData']
+    asyncio.run(main_text())
+    app.run(host='0.0.0.0', port=8000)

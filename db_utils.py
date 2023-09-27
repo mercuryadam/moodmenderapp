@@ -31,10 +31,6 @@ def find_and_update_highest_emotion(collection):
             if emotion['score'] > highest_score:
                 highest_score = emotion['score']
                 highest_emotion = emotion['name']
-
-        print(
-            f"For sample_text '{sample_text}', the highest score is {highest_score} for emotion {highest_emotion}")
-
         collection.update_one(
             {"_id": record['_id']},
             {"$set": {"highest_score": highest_score,
@@ -52,10 +48,6 @@ def find_and_update_top5_emotions(collection):
         # Sort the emotions by score in descending order and take the top 5
         top5_emotions = sorted(
             emotions, key=lambda x: x['score'], reverse=True)[:5]
-
-        print(
-            f"For sample_text '{sample_text}', the top 5 emotions are {top5_emotions}")
-
         collection.update_one(
             {"_id": record['_id']},
             {"$set": {"top5_emotions": top5_emotions}}
