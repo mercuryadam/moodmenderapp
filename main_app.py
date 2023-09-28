@@ -17,11 +17,19 @@ load_dotenv()
 api_key = os.environ.get("api_key")
 mongo_link = os.environ.get("mongo_link")
 
+
 @app.route('/submit_email', methods=['POST'])
 def submit_email():
-    data =  request.json
+    data = request.json
     email = data.get('email')
-    
+    mongo_client_users = MongoClient(mongo_link)
+    db_users = mongo_client_users['Users']
+    collection_users = db_users['users']
+
+    # Connect to emotionDB database
+    mongo_client_emotion = MongoClient(mongo_link)
+    db_emotion = mongo_client_emotion['emotionDB']
+    collection_emotion = db_emotion['emotionData']
     if not email:
         return jsonify({'success': False, 'message': 'Email is required'}), 400
     existing_record = collection_users.find_one({"email": email})
@@ -31,21 +39,24 @@ def submit_email():
 
     # Save email to Users database
     collection_users.insert_one({"email": email})
-    
+
     return jsonify({'success': True, 'message': 'Email saved successfully'}), 200
 
-@app.route("/") 
+
+@app.route("/")
 def index():
     return render_template("/index.html")
 
-@app.route("/api/update_highest_emotion", methods=["POST"])  
+
+@app.route("/api/update_highest_emotion", methods=["POST"])
 def update_highest_emotion():
     try:
         find_and_update_highest_emotion(collection_emotion)
         return jsonify({"success": True}), 200
     except Exception as e:
         print(f"Error: {e}")
-        return jsonify({"success": False}), 500  
+        return jsonify({"success": False}), 500
+
 
 samples = ["Mary had a little lamb,",
            "Its fleece was white as snow.",
@@ -57,6 +68,7 @@ samples = ["Mary had a little lamb,",
            "Brady bunch like in our evil intent"
            ]
 
+
 async def main_text():
     masterlist = []  # List to hold all records
     try:
@@ -64,7 +76,8 @@ async def main_text():
         config = LanguageConfig()
         async with client.connect([config]) as socket:
             for sample in samples:
-                existing_record = collection_emotion.find_one({"sample_text": sample})
+                existing_record = collection_emotion.find_one(
+                    {"sample_text": sample})
 
                 if existing_record:
                     print(f"Record already exists for sample: {sample}")
@@ -95,15 +108,10 @@ async def main_text():
 
     with open('masterlist.json', 'w', encoding='utf-8') as f:
         json.dump(masterlist, f, indent=4)
+
+
 if __name__ == "__main__":
     # Connect to Users database
-    mongo_client_users = MongoClient(mongo_link)
-    db_users = mongo_client_users['Users']
-    collection_users = db_users['users']
 
-    # Connect to emotionDB database
-    mongo_client_emotion = MongoClient(mongo_link)
-    db_emotion = mongo_client_emotion['emotionDB']
-    collection_emotion = db_emotion['emotionData']
     asyncio.run(main_text())
     app.run(host='0.0.0.0', port=8000)
